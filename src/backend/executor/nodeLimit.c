@@ -82,8 +82,11 @@ ExecLimit(PlanState *pstate)
 			/*
 			 * Check for empty window; if so, treat like empty subplan.
 			 */
+			ereport(LOG, (errmsg("LIMIT_RESCAN node->count=%d", node->count)));
+			printf("%d\n", node->count);
 			if (node->count <= 0 && !node->noCount)
 			{
+				ereport(LOG, (errmsg("LIMIT_RESCAN node->count=%d - returning NULL", node->count)));
 				node->lstate = LIMIT_EMPTY;
 				return NULL;
 			}
@@ -93,9 +96,11 @@ ExecLimit(PlanState *pstate)
 			 */
 			for (;;)
 			{
+				ereport(LOG, (errmsg("fetch row")));
 				slot = ExecProcNode(outerPlan);
 				if (TupIsNull(slot))
 				{
+					ereport(LOG, (errmsg("TupIsNull -> LIMIT_EMPTY (too few rows)")));
 					/*
 					 * The subplan returns too few tuples for us to produce
 					 * any output at all.
@@ -130,6 +135,7 @@ ExecLimit(PlanState *pstate)
 			 * The subplan is known to return no tuples (or not more than
 			 * OFFSET tuples, in general).  So we return no tuples.
 			 */
+			ereport(LOG, (errmsg("LIMIT_EMPTY")));
 			return NULL;
 
 		case LIMIT_INWINDOW:
@@ -170,9 +176,11 @@ ExecLimit(PlanState *pstate)
 					/*
 					 * Get next tuple from subplan, if any.
 					 */
+					ereport(LOG, (errmsg("Get next tuple from subplan, if any.", node->count)));
 					slot = ExecProcNode(outerPlan);
 					if (TupIsNull(slot))
 					{
+						ereport(LOG, (errmsg("TupIsNull -> LIMIT_SUBPLANEOF", node->count)));
 						node->lstate = LIMIT_SUBPLANEOF;
 						return NULL;
 					}
