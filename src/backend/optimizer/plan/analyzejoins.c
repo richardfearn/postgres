@@ -60,6 +60,7 @@ static bool is_innerrel_unique_for(PlannerInfo *root,
 List *
 remove_useless_joins(PlannerInfo *root, List *joinlist)
 {
+	ereport(LOG, (errmsg("Entered remove_useless_joins - joinlist length is %d", list_length(joinlist))));
 	ListCell   *lc;
 
 	/*
@@ -70,12 +71,16 @@ restart:
 	foreach(lc, root->join_info_list)
 	{
 		SpecialJoinInfo *sjinfo = (SpecialJoinInfo *) lfirst(lc);
+		ereport(LOG, (errmsg("Processing list entry - type=%d", sjinfo->type)));
 		int			innerrelid;
 		int			nremoved;
 
 		/* Skip if not removable */
 		if (!join_is_removable(root, sjinfo))
+		{
+			ereport(LOG, (errmsg("Not removable")));
 			continue;
+		}
 
 		/*
 		 * Currently, join_is_removable can only succeed when the sjinfo's
@@ -110,6 +115,7 @@ restart:
 		goto restart;
 	}
 
+	ereport(LOG, (errmsg("Exiting remove_useless_joins - joinlist length is %d", list_length(joinlist))));
 	return joinlist;
 }
 
@@ -176,6 +182,8 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 	if (!bms_get_singleton_member(sjinfo->min_righthand, &innerrelid))
 		return false;
 
+	ereport(LOG, (errmsg("here 1")));
+
 	/*
 	 * Never try to eliminate a left join to the query result rel.  Although
 	 * the case is syntactically impossible in standard SQL, MERGE will build
@@ -183,6 +191,8 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 	 */
 	if (innerrelid == root->parse->resultRelation)
 		return false;
+
+	ereport(LOG, (errmsg("here 2")));
 
 	innerrel = find_base_rel(root, innerrelid);
 
@@ -193,6 +203,8 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 	 */
 	if (!rel_supports_distinctness(root, innerrel))
 		return false;
+
+	ereport(LOG, (errmsg("here 3")));
 
 	/* Compute the relid set for the join we are considering */
 	joinrelids = bms_union(sjinfo->min_lefthand, sjinfo->min_righthand);
@@ -217,6 +229,8 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 		if (!bms_is_subset(innerrel->attr_needed[attroff], joinrelids))
 			return false;
 	}
+
+	ereport(LOG, (errmsg("here 4")));
 
 	/*
 	 * Similarly check that the inner rel isn't needed by any PlaceHolderVars
@@ -243,6 +257,8 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 						innerrel->relids))
 			return false;		/* it does reference innerrel */
 	}
+
+	ereport(LOG, (errmsg("here 5")));
 
 	/*
 	 * Search for mergejoinable clauses that constrain the inner rel against
@@ -291,12 +307,16 @@ join_is_removable(PlannerInfo *root, SpecialJoinInfo *sjinfo)
 		clause_list = lappend(clause_list, restrictinfo);
 	}
 
+	ereport(LOG, (errmsg("here 6")));
+
 	/*
 	 * Now that we have the relevant equality join clauses, try to prove the
 	 * innerrel distinct.
 	 */
 	if (rel_is_distinct_for(root, innerrel, clause_list))
 		return true;
+
+	ereport(LOG, (errmsg("here 7")));
 
 	/*
 	 * Some day it would be nice to check for other methods of establishing

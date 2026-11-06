@@ -816,6 +816,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 						   JoinExpr *lowest_nulling_outer_join,
 						   AppendRelInfo *containing_appendrel)
 {
+	// ereport(LOG, (errmsg("Entered pull_up_subqueries_recurse for %d", jtnode->type)));
 	/* Since this function recurses, it could be driven to stack overflow. */
 	check_stack_depth();
 	/* Also, since it's a bit expensive, let's check for query cancel. */
@@ -826,6 +827,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 	{
 		int			varno = ((RangeTblRef *) jtnode)->rtindex;
 		RangeTblEntry *rte = rt_fetch(varno, root->parse->rtable);
+		// ereport(LOG, (errmsg("IsA RangeTblRef - varno=%d rtekind=%d", varno, rte->rtekind)));
 
 		/*
 		 * Is this a subquery RTE, and if so, is the subquery simple enough to
@@ -877,6 +879,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 											 containing_appendrel);
 
 		/* Otherwise, do nothing at this node. */
+		// ereport(LOG, (errmsg("Do nothing")));
 	}
 	else if (IsA(jtnode, FromExpr))
 	{
@@ -885,8 +888,11 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 
 		Assert(containing_appendrel == NULL);
 		/* Recursively transform all the child nodes */
+		// ereport(LOG, (errmsg("Working on a FromExpr")));
 		foreach(l, f->fromlist)
 		{
+			Node *temp = lfirst(l);
+			// ereport(LOG, (errmsg("Working on a FromExpr - child = %d", temp->type)));
 			lfirst(l) = pull_up_subqueries_recurse(root, lfirst(l),
 												   lowest_outer_join,
 												   lowest_nulling_outer_join,
@@ -895,6 +901,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 	}
 	else if (IsA(jtnode, JoinExpr))
 	{
+		// ereport(LOG, (errmsg("IsA JoinExpr")));
 		JoinExpr   *j = (JoinExpr *) jtnode;
 
 		Assert(containing_appendrel == NULL);
@@ -902,6 +909,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 		switch (j->jointype)
 		{
 			case JOIN_INNER:
+				// ereport(LOG, (errmsg("IsA JoinExpr - INNER")));
 				j->larg = pull_up_subqueries_recurse(root, j->larg,
 													 lowest_outer_join,
 													 lowest_nulling_outer_join,
@@ -914,6 +922,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 			case JOIN_LEFT:
 			case JOIN_SEMI:
 			case JOIN_ANTI:
+				// ereport(LOG, (errmsg("IsA JoinExpr - LEFT / SEMI / ANTI. Left=%d Right=%d", j->larg->type, j->rarg->type)));
 				j->larg = pull_up_subqueries_recurse(root, j->larg,
 													 j,
 													 lowest_nulling_outer_join,
@@ -924,6 +933,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 													 NULL);
 				break;
 			case JOIN_FULL:
+				// ereport(LOG, (errmsg("IsA JoinExpr - FULL")));
 				j->larg = pull_up_subqueries_recurse(root, j->larg,
 													 j,
 													 j,
@@ -934,6 +944,7 @@ pull_up_subqueries_recurse(PlannerInfo *root, Node *jtnode,
 													 NULL);
 				break;
 			case JOIN_RIGHT:
+				// ereport(LOG, (errmsg("IsA JoinExpr - RIGHT")));
 				j->larg = pull_up_subqueries_recurse(root, j->larg,
 													 j,
 													 j,
@@ -3117,6 +3128,7 @@ reduce_outer_joins_pass2(Node *jtnode,
 void
 remove_useless_result_rtes(PlannerInfo *root)
 {
+	// ereport(LOG, (errmsg("Entered remove_useless_result_rtes")));
 	ListCell   *cell;
 
 	/* Top level of jointree must always be a FromExpr */
@@ -3156,6 +3168,7 @@ remove_useless_result_rtes(PlannerInfo *root)
 static Node *
 remove_useless_results_recurse(PlannerInfo *root, Node *jtnode)
 {
+	// ereport(LOG, (errmsg("Entered remove_useless_results_recurse")));
 	Assert(jtnode != NULL);
 	if (IsA(jtnode, RangeTblRef))
 	{
@@ -3277,6 +3290,7 @@ remove_useless_results_recurse(PlannerInfo *root, Node *jtnode)
 				break;
 			case JOIN_LEFT:
 
+				// ereport(LOG, (errmsg("Potentially about to optimise left join")));
 				/*
 				 * We can simplify this case if the RHS is an RTE_RESULT, with
 				 * two different possibilities:
@@ -3299,6 +3313,7 @@ remove_useless_results_recurse(PlannerInfo *root, Node *jtnode)
 					(j->quals == NULL ||
 					 !find_dependent_phvs(root, varno)))
 				{
+					// ereport(LOG, (errmsg("OPTIMISE")));
 					remove_result_refs(root, varno, j->larg);
 					jtnode = j->larg;
 				}

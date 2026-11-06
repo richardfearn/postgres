@@ -218,7 +218,9 @@ query_planner(PlannerInfo *root,
 	 * jointree preprocessing, but the necessary information isn't available
 	 * until we've built baserel data structures and classified qual clauses.
 	 */
+	ereport(LOG, (errmsg("Before remove_useless_joins call")));
 	joinlist = remove_useless_joins(root, joinlist);
+	ereport(LOG, (errmsg("After remove_useless_joins call")));
 
 	/*
 	 * Also, reduce any semijoins with unique inner rels to plain inner joins.

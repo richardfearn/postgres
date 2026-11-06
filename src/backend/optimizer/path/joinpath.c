@@ -167,11 +167,13 @@ add_paths_to_joinrel(PlannerInfo *root,
 	 * that is *not* true.)  For JOIN_UNIQUE_OUTER, pass JOIN_INNER to avoid
 	 * letting that value escape this module.
 	 */
+	ereport(LOG, (errmsg("Determining inner_unique")));
 	switch (jointype)
 	{
 		case JOIN_SEMI:
 		case JOIN_ANTI:
 
+			ereport(LOG, (errmsg("Is SEMI / ANTI")));
 			/*
 			 * XXX it may be worth proving this to allow a Memoize to be
 			 * considered for Nested Loop Semi/Anti Joins.
@@ -179,10 +181,12 @@ add_paths_to_joinrel(PlannerInfo *root,
 			extra.inner_unique = false; /* well, unproven */
 			break;
 		case JOIN_UNIQUE_INNER:
+			ereport(LOG, (errmsg("Is JOIN_UNIQUE_INNER")));
 			extra.inner_unique = bms_is_subset(sjinfo->min_lefthand,
 											   outerrel->relids);
 			break;
 		case JOIN_UNIQUE_OUTER:
+			ereport(LOG, (errmsg("Is JOIN_UNIQUE_OUTER")));
 			extra.inner_unique = innerrel_is_unique(root,
 													joinrel->relids,
 													outerrel->relids,
@@ -192,6 +196,7 @@ add_paths_to_joinrel(PlannerInfo *root,
 													false);
 			break;
 		default:
+			ereport(LOG, (errmsg("Is something else")));
 			extra.inner_unique = innerrel_is_unique(root,
 													joinrel->relids,
 													outerrel->relids,
