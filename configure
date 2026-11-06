@@ -4347,13 +4347,13 @@ if test "$ac_test_CFLAGS" = set; then
   CFLAGS=$ac_save_CFLAGS
 elif test $ac_cv_prog_cc_g = yes; then
   if test "$GCC" = yes; then
-    CFLAGS="-g"
+    CFLAGS="-g -O2"
   else
     CFLAGS="-g"
   fi
 else
   if test "$GCC" = yes; then
-    CFLAGS=
+    CFLAGS="-O2"
   else
     CFLAGS=
   fi
@@ -4878,13 +4878,13 @@ if test "$ac_test_CXXFLAGS" = set; then
   CXXFLAGS=$ac_save_CXXFLAGS
 elif test $ac_cv_prog_cxx_g = yes; then
   if test "$GXX" = yes; then
-    CXXFLAGS="-g"
+    CXXFLAGS="-g -O2"
   else
     CXXFLAGS="-g"
   fi
 else
   if test "$GXX" = yes; then
-    CXXFLAGS=
+    CXXFLAGS="-O2"
   else
     CXXFLAGS=
   fi
@@ -5244,7 +5244,7 @@ elif test "${CFLAGS+set}" = set; then
 elif test "$enable_coverage" = yes; then
   : # no optimization by default
 elif test "$GCC" = yes; then
-  :
+  CFLAGS="-O2"
 else
   # if the user selected debug mode, don't use -O
   if test "$enable_debug" != yes; then
@@ -5259,7 +5259,7 @@ elif test "${CXXFLAGS+set}" = set; then
 elif test "$enable_coverage" = yes; then
   : # no optimization by default
 elif test "$GCC" = yes; then
-  :
+  CXXFLAGS="-O2"
 else
   # if the user selected debug mode, don't use -O
   if test "$enable_debug" != yes; then
