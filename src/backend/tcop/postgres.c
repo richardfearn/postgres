@@ -1167,11 +1167,20 @@ exec_simple_query(const char *query_string)
 		else
 			oldcontext = MemoryContextSwitchTo(MessageContext);
 
+		printf("parsetree:\n");
+		pprint(parsetree);
+
 		querytree_list = pg_analyze_and_rewrite_fixedparams(parsetree, query_string,
 															NULL, 0, NULL);
 
+		printf("querytree_list:\n");
+		pprint(querytree_list);
+
 		plantree_list = pg_plan_queries(querytree_list, query_string,
 										CURSOR_OPT_PARALLEL_OK, NULL);
+
+		printf("plantree_list:\n");
+		pprint(plantree_list);
 
 		/*
 		 * Done with the snapshot used for parsing/planning.
