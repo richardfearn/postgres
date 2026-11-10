@@ -3880,6 +3880,14 @@ _outPartitionRangeDatum(StringInfo str, const PartitionRangeDatum *node)
 	WRITE_LOCATION_FIELD(location);
 }
 
+static void
+_outExplainStmt(StringInfo str, const ExplainStmt *node) {
+	WRITE_NODE_TYPE("EXPLAIN");
+
+	WRITE_NODE_FIELD(query);
+	WRITE_NODE_FIELD(options);
+}
+
 /*
  * outNode -
  *	  converts a Node into ascii string and append it to 'str'
@@ -4587,6 +4595,9 @@ outNode(StringInfo str, const void *obj)
 				break;
 			case T_PartitionRangeDatum:
 				_outPartitionRangeDatum(str, obj);
+				break;
+			case T_ExplainStmt:
+				_outExplainStmt(str, obj);
 				break;
 
 			default:
