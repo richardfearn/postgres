@@ -15,9 +15,12 @@
 #define PRINT_H
 
 #include "executor/tuptable.h"
+#include "nodes/parsenodes.h"
 
 
 #define nodeDisplay(x)		pprint(x)
+
+extern void print_ns(const List* ns);
 
 extern void print(const void *obj);
 extern void pprint(const void *obj);

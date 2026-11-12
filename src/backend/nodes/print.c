@@ -25,8 +25,15 @@
 #include "nodes/pathnodes.h"
 #include "nodes/print.h"
 #include "parser/parsetree.h"
+#include "parser/parse_node.h"
 #include "utils/lsyscache.h"
 
+
+void
+print_ns(const List* ns) {
+	printf("Hello!\n");
+	fflush(stdout);
+}
 
 /*
  * print
@@ -310,6 +317,7 @@ print_rt(const List *rtable)
 			   (rte->inFromCl ? "inFromCl" : ""));
 		i++;
 	}
+	fflush(stdout);
 }
 
 
@@ -482,6 +490,7 @@ print_tl(const List *tlist, const List *rtable)
 		printf("\n");
 	}
 	printf(")\n");
+	fflush(stdout);
 }
 
 /*
